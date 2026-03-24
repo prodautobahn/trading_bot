@@ -17,6 +17,52 @@ from broker import *
 from strategy import generate_signals
 from risk import *
 
+def run_bot(client, logger):
+    """
+    Single iteration of the bot for UI wrapper.
+    Can be called repeatedly by BotWrapper in a loop.
+    """
+    symbol = STRATEGY['symbol']
+    interval = STRATEGY['interval']
+
+    # Fetch latest bar
+    bar_resp = _get(f'/v2/stocks/{symbol}/bars', params={
+        'start': (datetime.datetime.utcnow() - datetime.timedelta(minutes=5)).strftime('%Y-%m-%dT%H:%M:%SZ'),
+        'end': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+        'timeframe': interval,
+    })
+    if not bar_resp:
+        logger.info("No new bar yet.")
+        return
+
+    new_bar = pd.DataFrame(bar_resp).iloc[-1]
+    # Append to df and compute indicators
+    df = load_historical(symbol, interval,
+                         (datetime.datetime.utcnow() - datetime.timedelta(days=1)).strftime('%Y-%m-%d'),
+                         datetime.datetime.utcnow().strftime('%Y-%m-%d'))
+    df = df.append(new_bar.set_index('timestamp'))
+    df = compute_indicators(df)
+
+    # Generate signals for this bar
+    signals = generate_signals(df)
+    sigs = [s for s in signals if s.time == new_bar['timestamp']]
+
+    for sig in sigs:
+        equity = get_account()['cash']
+        size = position_size(equity,
+                             RISK['max_per_trade_pct'],
+                             RISK['exit']['sl_atr_mult'],
+                             sig.atr)
+        if size <= 0:
+            logger.info("Calculated position size <= 0, skipping.")
+            continue
+        order_id = place_order(symbol,
+                               qty=size,
+                               side='buy',
+                               type_='market',
+                               time_in_force='gtc')
+        logger.info(f"Placed market order {order_id} for {size} shares at {sig.price}")
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Day‑Trading Bot")
     parser.add_argument('--mode', choices=['backtest', 'paper', 'live'],
