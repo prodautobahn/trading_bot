@@ -1,7 +1,0 @@
-pandas==2.2.1
-numpy==1.26.4
-matplotlib==3.8.2
-requests==2.31.0
-pytz==2024.1
-streamlit
-alpaca-trade-api
