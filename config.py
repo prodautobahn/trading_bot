@@ -64,3 +64,26 @@ LOGGING = {
 # ==============================================================
 # Modes: 'backtest', 'paper', 'live'
 DEFAULT_MODE = "paper"
+
+# ==============================================================
+# 5. UI
+# ==============================================================
+
+"""
+Alpaca credentials – put your keys here.
+You can keep the paper‑account values for testing
+and switch to the live ones before going live.
+"""
+
+# ---------- Alpaca – Paper ----------
+ALPACA_API_KEY_PAPER = "YOUR_PAPER_API_KEY"
+ALPACA_SECRET_KEY_PAPER = "YOUR_PAPER_SECRET_KEY"
+ALPACA_BASE_URL_PAPER = "https://paper-api.alpaca.markets"
+
+# ---------- Alpaca – Live ----------
+ALPACA_API_KEY_LIVE = "YOUR_LIVE_API_KEY"
+ALPACA_SECRET_KEY_LIVE = "YOUR_LIVE_SECRET_KEY"
+ALPACA_BASE_URL_LIVE = "https://api.alpaca.markets"
+
+# ---------- Misc ----------
+REFRESH_INTERVAL_SECONDS = 5      # how often the dashboard pulls fresh data
